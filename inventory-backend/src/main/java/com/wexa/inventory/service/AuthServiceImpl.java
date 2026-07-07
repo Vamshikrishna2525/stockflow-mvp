@@ -40,12 +40,14 @@ public class AuthServiceImpl implements AuthService {
         	        "Email already exists");
         }
 
-        Organization organization = Organization.builder()
-                .name(request.getOrganizationName())
-                .build();
-
-        organizationRepository.save(organization);
-
+        Organization organization = organizationRepository
+                .findByName(request.getOrganizationName())
+                .orElseGet(() -> {
+                    Organization org = Organization.builder()
+                            .name(request.getOrganizationName())
+                            .build();
+                    return organizationRepository.save(org);
+                });
         User user = User.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
