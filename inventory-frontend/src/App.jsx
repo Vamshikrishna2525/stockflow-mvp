@@ -5,6 +5,8 @@ import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import Products from "./pages/Products";
 
+import ProtectedRoute from "./components/ProtectedRoute";
+
 function App() {
 
     return (
@@ -15,9 +17,23 @@ function App() {
 
             <Route path="/signup" element={<Signup />} />
 
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route
+                path="/dashboard"
+                element={
+                    <ProtectedRoute>
+                        <Dashboard />
+                    </ProtectedRoute>
+                }
+            />
 
-            <Route path="/products" element={<Products />} />
+            <Route
+                path="/products"
+                element={
+                    <ProtectedRoute>
+                        <Products />
+                    </ProtectedRoute>
+                }
+            />
 
         </Routes>
 
