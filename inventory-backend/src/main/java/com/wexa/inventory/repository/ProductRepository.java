@@ -15,5 +15,12 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     Optional<Product> findByOrganizationAndSku(
             Organization organization,
             String sku);
+    long countByOrganization(Organization organization);
+
+    List<Product> findByOrganizationOrderByNameAsc(
+            Organization organization);
+    boolean existsByOrganizationAndSku(
+            Organization organization,
+            String sku);
 
 }
