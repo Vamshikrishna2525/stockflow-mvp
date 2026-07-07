@@ -22,5 +22,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     boolean existsByOrganizationAndSku(
             Organization organization,
             String sku);
+    List<Product> findByOrganizationAndQuantityOnHandLessThanEqual(
+            Organization organization,
+            Integer quantityOnHand);
 
 }
