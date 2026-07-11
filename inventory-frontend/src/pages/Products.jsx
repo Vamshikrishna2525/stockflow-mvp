@@ -1,219 +1,321 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  getProducts,
-  addProduct,
-  deleteProduct
+    getProducts,
+    addProduct,
+    updateProduct,
+    deleteProduct
 } from "../services/productService";
 
 function Products() {
 
-  const emptyProduct = {
-    name: "",
-    sku: "",
-    description: "",
-    quantityOnHand: 0,
-    costPrice: 0,
-    sellingPrice: 0,
-    lowStockThreshold: 5
-  };
+    const emptyProduct = {
+        name: "",
+        sku: "",
+        description: "",
+        quantityOnHand: 0,
+        costPrice: 0,
+        sellingPrice: 0,
+        lowStockThreshold: 5
+    };
 
-  const [products, setProducts] = useState([]);
-  const [product, setProduct] = useState(emptyProduct);
+    const [products, setProducts] = useState([]);
+    const [product, setProduct] = useState(emptyProduct);
+    const [editingId, setEditingId] = useState(null);
 
-  useEffect(() => {
-    loadProducts();
-  }, []);
+    useEffect(() => {
+        loadProducts();
+    }, []);
 
-  const loadProducts = async () => {
-    try {
-      const response = await getProducts();
-      setProducts(response.data);
-    } catch (e) {
-      alert("Unable to load products");
-    }
-  };
+    const loadProducts = async () => {
 
-  const handleChange = (e) => {
-    setProduct({
-      ...product,
-      [e.target.name]: e.target.value
-    });
-  };
+        try {
 
-  const saveProduct = async (e) => {
-    e.preventDefault();
+            const response = await getProducts();
 
-    try {
-      await addProduct(product);
+            setProducts(response.data);
 
-      alert("Product Added");
+        } catch (error) {
 
-      setProduct(emptyProduct);
+            alert("Unable to load products");
 
-      loadProducts();
+        }
 
-    } catch (e) {
+    };
 
-      alert("Unable to save product");
+    const handleChange = (e) => {
 
-    }
-  };
+        setProduct({
+            ...product,
+            [e.target.name]:
+                e.target.type === "number"
+                    ? Number(e.target.value)
+                    : e.target.value
+        });
 
-  const removeProduct = async (id) => {
+    };
 
-    if (!window.confirm("Delete Product?"))
-      return;
+    const saveProduct = async (e) => {
 
-    try {
+        e.preventDefault();
 
-      await deleteProduct(id);
+        try {
 
-      loadProducts();
+            if (editingId) {
 
-    } catch (e) {
+                await updateProduct(editingId, product);
 
-      alert("Delete Failed");
+                alert("Product Updated Successfully");
 
-    }
+            } else {
 
-  };
+                await addProduct(product);
 
-  return (
+                alert("Product Added Successfully");
 
-    <div style={{padding:30}}>
+            }
 
-      <Link to="/dashboard">
-        Dashboard
-      </Link>
+            setProduct(emptyProduct);
 
-      <h1>Products</h1>
+            setEditingId(null);
 
-      <form onSubmit={saveProduct}>
+            loadProducts();
 
-        <input
-          name="name"
-          placeholder="Name"
-          value={product.name}
-          onChange={handleChange}
-        />
+        } catch (error) {
 
-        <br/><br/>
+            alert("Unable to save product");
 
-        <input
-          name="sku"
-          placeholder="SKU"
-          value={product.sku}
-          onChange={handleChange}
-        />
+        }
 
-        <br/><br/>
+    };
 
-        <input
-          name="description"
-          placeholder="Description"
-          value={product.description}
-          onChange={handleChange}
-        />
+    const editProduct = (selectedProduct) => {
 
-        <br/><br/>
+        setProduct({
 
-        <input
-          type="number"
-          name="quantityOnHand"
-          placeholder="Quantity"
-          value={product.quantityOnHand}
-          onChange={handleChange}
-        />
+            name: selectedProduct.name,
+            sku: selectedProduct.sku,
+            description: selectedProduct.description,
+            quantityOnHand: selectedProduct.quantityOnHand,
+            costPrice: selectedProduct.costPrice,
+            sellingPrice: selectedProduct.sellingPrice,
+            lowStockThreshold: selectedProduct.lowStockThreshold
 
-        <br/><br/>
+        });
 
-        <input
-          type="number"
-          step="0.01"
-          name="costPrice"
-          placeholder="Cost Price"
-          value={product.costPrice}
-          onChange={handleChange}
-        />
+        setEditingId(selectedProduct.id);
 
-        <br/><br/>
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
 
-        <input
-          type="number"
-          step="0.01"
-          name="sellingPrice"
-          placeholder="Selling Price"
-          value={product.sellingPrice}
-          onChange={handleChange}
-        />
+    };
 
-        <br/><br/>
+    const cancelEdit = () => {
 
-        <input
-          type="number"
-          name="lowStockThreshold"
-          placeholder="Low Stock Threshold"
-          value={product.lowStockThreshold}
-          onChange={handleChange}
-        />
+        setProduct(emptyProduct);
 
-        <br/><br/>
+        setEditingId(null);
 
-        <button type="submit">
-          Add Product
-        </button>
+    };
 
-      </form>
+    const removeProduct = async (id) => {
 
-      <hr/>
+        if (!window.confirm("Are you sure you want to delete this product?"))
+            return;
 
-      <table border="1" cellPadding="8">
+        try {
 
-        <thead>
+            await deleteProduct(id);
 
-        <tr>
+            alert("Product Deleted Successfully");
 
-          <th>Name</th>
-          <th>SKU</th>
-          <th>Qty</th>
-          <th>Selling Price</th>
-          <th>Action</th>
+            loadProducts();
 
-        </tr>
+        } catch (error) {
 
-        </thead>
+            alert("Delete Failed");
 
-        <tbody>
+        }
 
-        {products.map((p)=>(
-          <tr key={p.id}>
+    };
+        return (
 
-            <td>{p.name}</td>
-            <td>{p.sku}</td>
-            <td>{p.quantityOnHand}</td>
-            <td>{p.sellingPrice}</td>
+        <div style={{ padding: 30 }}>
 
-            <td>
+            <Link to="/dashboard">
+                ← Dashboard
+            </Link>
 
-              <button
-                onClick={() => removeProduct(p.id)}
-              >
-                Delete
-              </button>
+            <h1>Products</h1>
 
-            </td>
+            <form onSubmit={saveProduct}>
 
-          </tr>
-        ))}
+                <label><b>Product Name</b></label><br />
+                <input
+                    name="name"
+                    placeholder="Enter Product Name"
+                    value={product.name}
+                    onChange={handleChange}
+                    required
+                />
 
-        </tbody>
+                <br /><br />
 
-      </table>
+                <label><b>SKU</b></label><br />
+                <input
+                    name="sku"
+                    placeholder="Enter SKU"
+                    value={product.sku}
+                    onChange={handleChange}
+                    required
+                />
 
-    </div>
+                <br /><br />
 
-  );
+                <label><b>Description</b></label><br />
+                <input
+                    name="description"
+                    placeholder="Enter Description"
+                    value={product.description}
+                    onChange={handleChange}
+                />
+
+                <br /><br />
+
+                <label><b>Quantity</b></label><br />
+                <input
+                    type="number"
+                    name="quantityOnHand"
+                    placeholder="Enter Quantity"
+                    value={product.quantityOnHand}
+                    onChange={handleChange}
+                    required
+                />
+
+                <br /><br />
+
+                <label><b>Cost Price</b></label><br />
+                <input
+                    type="number"
+                    step="0.01"
+                    name="costPrice"
+                    placeholder="Enter Cost Price"
+                    value={product.costPrice}
+                    onChange={handleChange}
+                    required
+                />
+
+                <br /><br />
+
+                <label><b>Selling Price</b></label><br />
+                <input
+                    type="number"
+                    step="0.01"
+                    name="sellingPrice"
+                    placeholder="Enter Selling Price"
+                    value={product.sellingPrice}
+                    onChange={handleChange}
+                    required
+                />
+
+                <br /><br />
+
+                <label><b>Low Stock Threshold</b></label><br />
+                <input
+                    type="number"
+                    name="lowStockThreshold"
+                    placeholder="Enter Low Stock Threshold"
+                    value={product.lowStockThreshold}
+                    onChange={handleChange}
+                    required
+                />
+
+                <br /><br />
+
+                <button type="submit">
+                    {editingId ? "Update Product" : "Add Product"}
+                </button>
+
+                {editingId && (
+                    <>
+                        {" "}
+                        <button
+                            type="button"
+                            onClick={cancelEdit}
+                        >
+                            Cancel
+                        </button>
+                    </>
+                )}
+
+            </form>
+
+            <hr />
+
+            <table border="1" cellPadding="8">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Name</th>
+                        <th>SKU</th>
+                        <th>Description</th>
+                        <th>Quantity</th>
+                        <th>Cost Price</th>
+                        <th>Selling Price</th>
+                        <th>Low Stock</th>
+                        <th>Actions</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {products.map((p) => (
+
+                        <tr key={p.id}>
+
+                            <td>{p.name}</td>
+                            <td>{p.sku}</td>
+                            <td>{p.description}</td>
+                            <td>{p.quantityOnHand}</td>
+                            <td>{p.costPrice}</td>
+                            <td>{p.sellingPrice}</td>
+                            <td>{p.lowStockThreshold}</td>
+
+                            <td>
+
+                                <button
+                                    onClick={() => editProduct(p)}
+                                >
+                                    Edit
+                                </button>
+
+                                {" "}
+
+                                <button
+                                    onClick={() => removeProduct(p.id)}
+                                >
+                                    Delete
+                                </button>
+
+                            </td>
+
+                        </tr>
+
+                    ))}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    );
 
 }
 
